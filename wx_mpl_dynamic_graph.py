@@ -27,7 +27,7 @@ import random
 import sys
 import wx
 
-REFRESH_INTERVAL_MS = 90
+REFRESH_INTERVAL_MS = 90 
 
 # The recommended way to use wx with mpl is with the WXAgg
 # backend. 
@@ -44,6 +44,19 @@ import pylab
 from Arduino_Monitor import SerialData as DataGen
 
 
+
+
+thumbCount = 0
+indexCount = 0
+midCount = 0
+ringCount = 0
+pinkyCount = 0
+
+thumbFlexCount = 0
+indexFlexCount = 0
+midFlexCount = 0
+ringFlexCount = 0
+pinkyFlexCount = 0
 class BoundControlBox(wx.Panel):
     """ A static box with a couple of radio buttons and a text
         box. Allows to switch between an automatic mode and a 
@@ -151,13 +164,73 @@ class GraphFrame(wx.Frame):
             style=wx.ALIGN_RIGHT)
         self.Bind(wx.EVT_CHECKBOX, self.on_cb_xlab, self.cb_xlab)        
         self.cb_xlab.SetValue(True)
+
+        self.thumb_label= wx.StaticText(self.panel,label="Thumb: ",style=wx.ALIGN_CENTRE)
+        self.thumb_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.index_label= wx.StaticText(self.panel,label="Index: ",style=wx.ALIGN_CENTRE)
+        self.index_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.mid_label= wx.StaticText(self.panel,label="Middle: ",style=wx.ALIGN_CENTRE)
+        self.mid_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.ring_label = wx.StaticText(self.panel,label="Ring: ",style=wx.ALIGN_CENTRE)
+        self.ring_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.pinky_label = wx.StaticText(self.panel,label="Pinky: ",style=wx.ALIGN_CENTRE)
+        self.pinky_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
         
+        self.thumb_flex_label= wx.StaticText(self.panel,label="Thumb Flex: ",style=wx.ALIGN_CENTRE)
+        self.thumb_flex_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.index_flex_label= wx.StaticText(self.panel,label="Index Flex: ",style=wx.ALIGN_CENTRE)
+        self.index_flex_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.mid_flex_label= wx.StaticText(self.panel,label="Middle Flex: ",style=wx.ALIGN_CENTRE)
+        self.mid_flex_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.ring_flex_label = wx.StaticText(self.panel,label="Ring Flex: ",style=wx.ALIGN_CENTRE)
+        self.ring_flex_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
+        self.pinky_flex_label = wx.StaticText(self.panel,label="Pinky Flex: ",style=wx.ALIGN_CENTRE)
+        self.pinky_flex_counter = wx.StaticText(self.panel,label="0",style=wx.ALIGN_CENTRE)
+
         self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox1.Add(self.pause_button, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(20)
         self.hbox1.Add(self.cb_grid, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
         self.hbox1.AddSpacer(10)
         self.hbox1.Add(self.cb_xlab, border=5, flag=wx.ALL | wx.ALIGN_CENTER_VERTICAL)
+        self.hbox1.AddSpacer(10)
+        #self.hbox1.Add(self.thumb_label,flag=wx.ALL,border=5)
+        #self.hbox1.Add(self.thumb_counter,flag=wx.ALL,border=5)
+        #self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.index_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.index_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.mid_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.mid_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.ring_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.ring_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.pinky_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.pinky_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.thumb_flex_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.thumb_flex_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.index_flex_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.index_flex_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.mid_flex_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.mid_flex_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.ring_flex_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.ring_flex_counter,flag=wx.ALL,border=5)
+        self.hbox1.AddSpacer(10)
+        self.hbox1.Add(self.pinky_flex_label,flag=wx.ALL,border=5)
+        self.hbox1.Add(self.pinky_flex_counter,flag=wx.ALL,border=5)
         
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox2.Add(self.xmin_control, border=5, flag=wx.ALL)
@@ -290,7 +363,46 @@ class GraphFrame(wx.Frame):
         # (to respond to scale modifications, grid change, etc.)
         #
         if not self.paused:
-            self.data.append(self.datagen.next())
+            nextData = self.datagen.next()
+            print nextData
+            if nextData<32:
+                self.data.append(nextData)
+            elif nextData==40:
+                global thumbFlexCount
+                thumbFlexCount = thumbFlexCount + 1
+                self.thumb_flex_counter.SetLabel(str(thumbFlexCount))
+            elif nextData==41:
+                global indexFlexCount
+                indexFlexCount = indexFlexCount + 1
+                self.index_flex_counter.SetLabel(str(indexFlexCount))
+            elif nextData==42:
+                global midFlexCount
+                midFlexCount = midFlexCount + 1
+                self.mid_flex_counter.SetLabel(str(midFlexCount))
+            elif nextData==43:
+                global ringFlexCount
+                ringFlexCount = ringFlexCount + 1
+                self.ring_flex_counter.SetLabel(str(ringFlexCount))
+            elif nextData==44:
+                global pinkyFlexCount
+                pinkyFlexCount = pinkyFlexCount + 1
+                self.pinky_flex_counter.SetLabel(str(pinkyFlexCount))
+            elif nextData==33:
+                global indexCount
+                indexCount = indexCount + 1
+                self.index_counter.SetLabel(str(indexCount))
+            elif nextData==34:
+                global midCount
+                midCount = midCount + 1
+                self.mid_counter.SetLabel(str(midCount))
+            elif nextData==35:
+                global ringCount
+                ringCount = ringCount + 1
+                self.ring_counter.SetLabel(str(ringCount))
+            elif nextData==36:
+                global pinkyCount
+                pinkyCount = pinkyCount + 1
+                self.pinky_counter.SetLabel(str(pinkyCount))
         
         self.draw_plot()
     

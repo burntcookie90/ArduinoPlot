@@ -13,6 +13,7 @@ def receiving(ser):
     buffer = ''
     while True:
         buffer = buffer + ser.read(ser.inWaiting())
+        #print buffer
         if '\n' in buffer:
             lines = buffer.split('\n') # Guaranteed to have at least 2 entries
             last_received = lines[-2]
@@ -26,7 +27,7 @@ class SerialData(object):
     def __init__(self, init=50):
         try:
             self.ser = ser = serial.Serial(
-                port='com4',
+                port='/dev/ttyACM0',
                 baudrate=9600,
                 bytesize=serial.EIGHTBITS,
                 parity=serial.PARITY_NONE,
@@ -46,10 +47,13 @@ class SerialData(object):
         if not self.ser:
             return 100 #return anything so we can test when Arduino isn't connected
         #return a float value or try a few times until we get one
-        for i in range(40):
+        for i in range(50):
             raw_line = last_received
             try:
+                #if(float(raw_line.strip())<32):
                 return float(raw_line.strip())
+            #else:
+                    #print float(raw_line.strip())
             except ValueError:
                 print 'bogus data',raw_line
                 time.sleep(.005)
@@ -61,5 +65,5 @@ class SerialData(object):
 if __name__=='__main__':
     s = SerialData()
     for i in range(500):
-        time.sleep(.015)
+        #time.sleep(.015)
         print s.next()
